@@ -1,0 +1,18 @@
+# 数据集（体积大，不入库）
+rawdataset/
+classifier_dataset/
+the_data_need_to_be_testes/
+!the_data_need_to_be_testes/.gitkeep
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.env
+
+# 编辑器
+.vscode/
+.idea/
+*.swp
