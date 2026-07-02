@@ -91,6 +91,33 @@ python predict.py the_data_need_to_be_testes/
 python predict.py the_data_need_to_be_testes/ --verbose
 ```
 
+### 5. 可视化标注（排查 JSON 标签是否标错）
+
+当 `predict.py` 报出"JSON标签和预测不一致"时，光看 json/图片文件名往往看不出具体是哪一个标注框出了问题（一张图可能有多个同名标签的框）。这时用 `visualize_annotations.py` 把标注画到图上、并把每个框单独裁出来看：
+
+```bash
+# 传入对应的 JSON 文件路径（同目录下要有 imagePath 指向的图片）
+python visualize_annotations.py the_data_need_to_be_testes/<session_name>/rgb/<image>.json
+
+# 只看某一个标签的框（比如只看 red_pan，忽略其它一堆标注）
+python visualize_annotations.py the_data_need_to_be_testes/<session_name>/rgb/<image>.json --label red_pan
+
+# 输出放到别的目录
+python visualize_annotations.py the_data_need_to_be_testes/<session_name>/rgb/<image>.json --out-dir /tmp/check
+```
+
+会在 JSON 同目录下生成：
+
+```
+<image>_annotated.png     # 整图，画出全部标注框，标出序号+标签+置信度
+<image>_crops/            # 按标注框逐个裁剪打包进的新文件夹
+├── 00_red_pan.png         #   文件名 = 序号_标签.png，一眼对应回标注总览图里的框
+├── 01_red_pan.png
+└── ...
+```
+
+打开 `_crops/` 文件夹逐张看裁剪图，就能直接判断哪一张标注的物体和标签对不上（比如标签写的是 `red_pan`，裁出来的图却是蓝色的锅）——不依赖模型、不需要装 torch，只要能读图片就能跑。
+
 ## 项目结构
 
 ```
@@ -101,6 +128,7 @@ object-classifier/
 ├── prepare_dataset.py      # 裁剪 rawdataset → classifier_dataset，80/20 分割
 ├── train.py                # EfficientNet-B0 fine-tune 训练脚本
 ├── predict.py              # 推理脚本（支持单图 / LabelMe JSON / 目录批量）
+├── visualize_annotations.py # 标注可视化脚本（画标注框 + 逐框裁剪打包，排查错误标签用）
 ├── classifier_best.pth     # 预训练模型权重（可直接用于推理）
 ├── classes.json            # 类别列表
 ├── requirements.txt

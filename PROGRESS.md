@@ -52,6 +52,8 @@
   - 输出：`<basename>_annotated.png`（整图画出所有标注框+序号+标签+score）+ `<basename>_crops/`（每个框单独裁剪成 `序号_标签.png`，方便放大核对）。
 - 用它跑了上面那个案例，确认是 **`#01` 号 `red_pan` 标注（bbox 696,282,1028,382，score 0.45）标错了**——裁出来一看实际是蓝色平底锅，是标注问题不是模型问题。`#00` 号 `red_pan`（score 0.81）是真的红锅，没问题。
 - 这个工具会在每次跑的时候在 json 同目录下留下 `_annotated.png` 和 `_crops/` 文件夹（不是临时文件，是给用户看的产出物，没有清理）。目前 `the_data_need_to_be_testes/20260611_150213/rgb/` 下已经多了这两样东西。
+- 用户在自己的 `clip_verify` 环境里实测跑通了这个脚本（`python3 visualize_annotations.py the_data_need_to_be_testes/20260611_150213/rgb/20260611_150234_109.json`），命令行汇总输出正常，问过裁剪图在哪之后确认是文件管理器打开文件夹能看到，没有更多问题。
+- 已把 `visualize_annotations.py` + 更新的 `PROGRESS.md` 提交推送到 GitHub（`git@github.com:WRZ3/object_classifier.git`，`main` 分支，commit `1c383e2`，`5d88022..1c383e2`）。推送前用 AskUserQuestion 确认过范围：只提交这两个文件，`lingshi/` 目录继续保持未跟踪状态不推送（用户选的是"按此范围推送"而不是顺便把 lingshi/ 加进 .gitignore）。
 
 ## 下次接着做什么
 
