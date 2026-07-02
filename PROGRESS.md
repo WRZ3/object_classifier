@@ -38,10 +38,27 @@
 - `rawdataset/`、`classifier_dataset/`、`the_data_need_to_be_testes/` 按 `.gitignore` 正确排除，没有传上去（`classifier_best.pth` 约 16MB，直接进普通 git 历史，没用 Git LFS，目前没问题）。
 - 本机现状：`~/.ssh/id_ed25519`（私钥）+ `id_ed25519.pub`（公钥）已生成并配置好，之后这台机器对这个 GitHub 账号的 push/pull 都是免密的，不用再重新配置。
 
+## 本次会话（推送新版本模型）做的事 —— 已完成
+
+- 用户本地已经产出了新版本的 `classifier_best.pth`（16MB → 16MB，字节内容变了）以及配套更新的 `classes.json`、`PROGRESS.md`，要求传到远程仓库 `git@github.com:WRZ3/object_classifier.git`（即上一 session 建的 `origin`）。
+- 只 `git add` 了这三个文件（`classifier_best.pth` / `classes.json` / `PROGRESS.md`），提交信息 "Update classifier model to new version"，`git push origin main` 成功（`38fb054..5d88022`）。
+- 项目目录下新增了一个未跟踪的 `lingshi/` 目录（含若干 `202606xx_xxxxxx` 命名的子目录，看结构像推理/测试数据的 session 输出，跟 `.gitignore` 里排除的 `rawdataset/`、`the_data_need_to_be_testes/` 性质类似），**这次故意没有加入提交**，也没问用户这个目录具体是什么、要不要入库——下次如果还在，最好确认一下是不是该在 `.gitignore` 里正式排除掉，还是需要传上去。
+
+## 本次会话（新增标注可视化工具，定位一条错误标注）—— 已完成
+
+- 用户反馈 `the_data_need_to_be_testes/20260611_150213/rgb/20260611_150234_109.json` 里 `red_pan` 被预测成 `blue_pan (99.3%)`，但光看 json/图片肉眼看不出具体是哪个标注框错了（这张图里有两个 `red_pan` 标注）。
+- 新增 `visualize_annotations.py`（项目根目录）：只依赖 opencv/numpy，不需要 torch，跟能不能跑 predict.py 无关。
+  - 用法：`python3 visualize_annotations.py <json路径>`，可选 `--label <某标签>` 只看某一类框，`--out-dir` 改输出位置。
+  - 输出：`<basename>_annotated.png`（整图画出所有标注框+序号+标签+score）+ `<basename>_crops/`（每个框单独裁剪成 `序号_标签.png`，方便放大核对）。
+- 用它跑了上面那个案例，确认是 **`#01` 号 `red_pan` 标注（bbox 696,282,1028,382，score 0.45）标错了**——裁出来一看实际是蓝色平底锅，是标注问题不是模型问题。`#00` 号 `red_pan`（score 0.81）是真的红锅，没问题。
+- 这个工具会在每次跑的时候在 json 同目录下留下 `_annotated.png` 和 `_crops/` 文件夹（不是临时文件，是给用户看的产出物，没有清理）。目前 `the_data_need_to_be_testes/20260611_150213/rgb/` 下已经多了这两样东西。
+
 ## 下次接着做什么
 
-- 以后本项目改动要同步到 GitHub：正常 `git add` + `git commit` + `git push`（不需要 `--force`，那只是这次为了覆盖占位 README 用的一次性操作，以后除非明确要改写历史否则不要再用）。
+- 以后本项目改动要同步到 GitHub：正常 `git add` + `git commit` + `git push`（不需要 `--force`，那只是最初为了覆盖占位 README 用的一次性操作，以后除非明确要改写历史否则不要再用）。
+- `lingshi/` 目录待确认：是否要正式加进 `.gitignore`（如果是本地临时推理输出），还是需要作为数据/结果的一部分提交上去。
 - 如果要训练/补齐 12 类：先确认真实标注数据现在具体在哪个路径（之前发现桌面上的原始位置已经清空/挪动过，位置可能变了），放进 `object-classifier/rawdataset/<session>/rgb/`，再跑 `prepare_dataset.py` → `train.py`。
 - 待推理数据放 `the_data_need_to_be_testes/<session>/rgb/`，直接 `python predict.py`（用 clip_verify 环境）批量跑，默认只看汇总；要看全部逐行结果加 `--verbose`。
 - 如果需要对 JSON 语法错误做容错（跳过继续处理而不是整体崩溃），还没做，需要用户明确要求后再加。
 - 运行命令统一用：`/home/wrz3/miniconda3/envs/clip_verify/bin/python <script>.py`。
+- 待确认：`20260611_150234_109.json` 里 `#01` 号 `red_pan` 标注要不要改成 `blue_pan`（已确认是标注错误，见上一节）。已问过用户是先手动改这一条，还是让我批量扫一遍 `the_data_need_to_be_testes/` 找出所有类似的错误标注再一起改——回复还没收到，等用户决定。
